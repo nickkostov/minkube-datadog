@@ -14,89 +14,25 @@ datadog:
   appKey: ${app_key}
   ## Configure the secret backend feature https://docs.datadoghq.com/agent/guide/secrets-management
   ## Examples: https://docs.datadoghq.com/agent/guide/secrets-management/#setup-examples-1
-  secretBackend:
-    # datadog.secretBackend.command -- Configure the secret backend command, path to the secret backend binary.
-
-    ## Note: If the command value is "/readsecret_multiple_providers.sh", and datadog.secretBackend.enableGlobalPermissions is enabled below, the agents will have permissions to get secret objects across the cluster.
-    ## Read more about "/readsecret_multiple_providers.sh": https://docs.datadoghq.com/agent/guide/secrets-management/#script-for-reading-from-multiple-secret-providers-readsecret_multiple_providerssh
-    command:  # "/readsecret.sh" or "/readsecret_multiple_providers.sh" or any custom binary path
-
-    # datadog.secretBackend.arguments -- Configure the secret backend command arguments (space-separated strings).
-    arguments:  # "/etc/secret-volume" or any other custom arguments
-
-    # datadog.secretBackend.timeout -- Configure the secret backend command timeout in seconds.
-    timeout:  # 30
-
-    # datadog.secretBackend.enableGlobalPermissions -- Whether to create a global permission allowing Datadog agents to read all secrets when `datadog.secretBackend.command` is set to `"/readsecret_multiple_providers.sh"`.
-    enableGlobalPermissions: true
-
-    # datadog.secretBackend.roles -- Creates roles for Datadog to read the specified secrets - replacing `datadog.secretBackend.enableGlobalPermissions`.
-    roles: []
-    # - namespace: secret-location-namespace
-    #   secrets:
-    #     - secret-1
-    #     - secret-2
   securityContext:
     runAsUser: 0
-
-  # datadog.hostVolumeMountPropagation -- Allow to specify the `mountPropagation` value on all volumeMounts using HostPath
-
-  ## ref: https://kubernetes.io/docs/concepts/storage/volumes/#mount-propagation
   hostVolumeMountPropagation: None
   #clusterName: minkube-home-server
   site: datadoghq.eu
-
-  # datadog.dd_url -- The host of the Datadog intake server to send Agent data to, only set this option if you need the Agent to send data to a custom URL
-  ## Overrides the site setting defined in "site".
-  #dd_url:  # https://app.datadoghq.com
-
-  # datadog.logLevel -- Set logging verbosity, valid log levels are: trace, debug, info, warn, error, critical, off
   logLevel: INFO
-
-  # datadog.kubeStateMetricsEnabled -- If true, deploys the kube-state-metrics deployment
-####################################### KUBE STATE METRICS #######################################
-  ## ref: https://github.com/kubernetes/kube-state-metrics/tree/kube-state-metrics-helm-chart-2.13.2/charts/kube-state-metrics
-  # The kubeStateMetricsEnabled option will be removed in the 4.0 version of the Datadog Agent chart.
+## State metrics configuration
   kubeStateMetricsEnabled: true
-
   kubeStateMetricsNetworkPolicy:
-    # datadog.kubeStateMetricsNetworkPolicy.create -- If true, create a NetworkPolicy for kube state metrics
     create: false
-
   kubeStateMetricsCore:
-    # datadog.kubeStateMetricsCore.enabled -- Enable the kubernetes_state_core check in the Cluster Agent (Requires Cluster Agent 1.12.0+)
-
-    ## ref: https://docs.datadoghq.com/integrations/kubernetes_state_core
     enabled: true
-
     rbac:
-    # datadog.kubeStateMetricsCore.rbac.create -- If true, create & use RBAC resources
       create: true
-
-    # datadog.kubeStateMetricsCore.ignoreLegacyKSMCheck -- Disable the auto-configuration of legacy kubernetes_state check (taken into account only when datadog.kubeStateMetricsCore.enabled is true)
-
-    ## Disabling this field is not recommended as it results in enabling both checks, it can be useful though during the migration phase.
-    ## Migration guide: https://docs.datadoghq.com/integrations/kubernetes_state_core/?tab=helm#migration-from-kubernetes_state-to-kubernetes_state_core
     ignoreLegacyKSMCheck: true
-
-    # datadog.kubeStateMetricsCore.collectSecretMetrics -- Enable watching secret objects and collecting their corresponding metrics kubernetes_state.secret.*
-
-    ## Configuring this field will change the default kubernetes_state_core check configuration and the RBACs granted to Datadog Cluster Agent to run the kubernetes_state_core check.
     collectSecretMetrics: true
-
-    # datadog.kubeStateMetricsCore.collectVpaMetrics -- Enable watching VPA objects and collecting their corresponding metrics kubernetes_state.vpa.*
-
-    ## Configuring this field will change the default kubernetes_state_core check configuration and the RBACs granted to Datadog Cluster Agent to run the kubernetes_state_core check.
     collectVpaMetrics: false
-
-    # datadog.kubeStateMetricsCore.useClusterCheckRunners -- For large clusters where the Kubernetes State Metrics Check Core needs to be distributed on dedicated workers.
-
-    ## Configuring this field will create a separate deployment which will run Cluster Checks, including Kubernetes State Metrics Core.
-    ## ref: https://docs.datadoghq.com/agent/cluster_agent/clusterchecksrunner?tab=helm
     useClusterCheckRunners: false
-
     # datadog.kubeStateMetricsCore.labelsAsTags -- Extra labels to collect from resources and to turn into datadog tag.
-
     ## It has the following structure:
     ## labelsAsTags:
     ##   <resource1>:        # can be pod, deployment, node, etc.
@@ -161,13 +97,10 @@ datadog:
 
   # kubelet configuration
   kubelet:
-    # datadog.kubelet.host -- Override kubelet IP
     host:
       valueFrom:
         fieldRef:
           fieldPath: status.hostIP
-    # datadog.kubelet.tlsVerify -- Toggle kubelet TLS verification
-    # @default -- true
     tlsVerify: false
     # datadog.kubelet.hostCAPath -- Path (on host) where the Kubelet CA certificate is stored
     # @default -- None (no mount from host)
@@ -178,16 +111,11 @@ datadog:
     ## datadog.kubelet.podLogsPath -- Path (on host) where the PODs logs are located
     ## @default -- /var/log/pods on Linux, C:\var\log\pods on Windows
     podLogsPath:
-
-  # datadog.expvarPort -- Specify the port to expose pprof and expvar to not interfer with the agentmetrics port from the cluster-agent, which defaults to 5000
   expvarPort: 6000
 ####################################### dogstatsd CONFIGURATION #######################################
   ## ref: https://docs.datadoghq.com/agent/kubernetes/dogstatsd/
   ## To emit custom metrics from your Kubernetes application, use DogStatsD.
   dogstatsd:
-    # datadog.dogstatsd.port -- Override the Agent DogStatsD port
-
-    ## Note: Make sure your client is sending to the same UDP port.
     port: 8125
 
     # datadog.dogstatsd.originDetection -- Enable origin detection for container tagging
@@ -300,48 +228,13 @@ datadog:
 
     # datadog.apm.hostSocketPath -- Host path to the trace-agent socket
     hostSocketPath: /var/run/datadog/
-####################################### otlp CONFIGURATION #######################################
-  ## OTLP ingest related configuration
-  otlp:
-    receiver:
-      protocols:
-        # datadog.otlp.receiver.protocols.grpc - OTLP/gRPC configuration
-        grpc:
-          # datadog.otlp.receiver.protocols.grpc.enabled -- Enable the OTLP/gRPC endpoint
-          enabled: false
-          # datadog.otlp.receiver.procotols.grpc.endpoint -- OTLP/gRPC endpoint
-          endpoint: "0.0.0.0:4317"
-          # datadog.otlp.receiver.protocols.grpc.useHostPort -- Enable the Host Port for the OTLP/gRPC endpoint
-          useHostPort: true
-
-        # datadog.otlp.receiver.protocols.http - OTLP/HTTP configuration
-        http:
-          # datadog.otlp.receiver.protocols.http.enabled -- Enable the OTLP/HTTP endpoint
-          enabled: false
-          # datadog.otlp.receiver.protocols.http.endpoint -- OTLP/HTTP endpoint
-          endpoint: "0.0.0.0:4318"
-          # datadog.otlp.receiver.protocols.http.useHostPort -- Enable the Host Port for the OTLP/HTTP endpoint
-          useHostPort: true
-
-  # datadog.envFrom -- Set environment variables for all Agents directly from configMaps and/or secrets
-
-  ## envFrom to pass configmaps or secrets as environment
-  envFrom: []
-  #   - configMapRef:
-  #       name: <CONFIGMAP_NAME>
-  #   - secretRef:
-  #       name: <SECRET_NAME>
-
   # datadog.env -- Set environment variables for all Agents
-
   ## The Datadog Agent supports many environment variables.
   ## ref: https://docs.datadoghq.com/agent/docker/?tab=standard#environment-variables
   env: []
   #   - name: <ENV_VAR_NAME>
   #     value: <ENV_VAR_VALUE>
-
   # datadog.confd -- Provide additional check configurations (static and Autodiscovery)
-
   ## Each key becomes a file in /conf.d
   ## ref: https://github.com/DataDog/datadog-agent/tree/main/Dockerfiles/agent#optional-volumes
   ## ref: https://docs.datadoghq.com/agent/autodiscovery/
@@ -357,23 +250,8 @@ datadog:
   #     init_config:
   #     instances:
   #       - kube_state_url: http://%%host%%:8080/metrics
-
-  # datadog.checksd -- Provide additional custom checks as python code
-
-  ## Each key becomes a file in /checks.d
-  ## ref: https://github.com/DataDog/datadog-agent/tree/main/Dockerfiles/agent#optional-volumes
-  checksd: {}
-  #   service.py: |-
-
-  # datadog.dockerSocketPath -- Path to the docker socket
-  dockerSocketPath:  # /var/run/docker.sock
-
-  # datadog.criSocketPath -- Path to the container runtime socket (if different from Docker)
-  criSocketPath:  # /var/run/containerd/containerd.sock
-
   # Configure how the agent interact with the host's container runtime
   containerRuntimeSupport:
-    # datadog.containerRuntimeSupport.enabled -- Set this to false to disable agent access to container runtime.
     enabled: true
 
 ####################################### PROCESS AGENT CONFIGURATION #######################################
@@ -479,46 +357,6 @@ datadog:
     enabled: false
   ## Enable security agent and provide custom configs
 ####################################### Security Monitoting CONFIGURATION #######################################
-  securityAgent:
-    compliance:
-      # datadog.securityAgent.compliance.enabled -- Set to true to enable Cloud Security Posture Management (CSPM)
-      enabled: false
-      # datadog.securityAgent.compliance.configMap -- Contains CSPM compliance benchmarks that will be used
-      configMap:
-      # datadog.securityAgent.compliance.checkInterval -- Compliance check run interval
-      checkInterval: 20m
-    runtime:
-      # datadog.securityAgent.runtime.enabled -- Set to true to enable Cloud Workload Security (CWS)
-      enabled: false
-      # datadog.securityAgent.runtime.fimEnabled -- Set to true to enable Cloud Workload Security (CWS) File Integrity Monitoring
-      fimEnabled: false
-      policies:
-        # datadog.securityAgent.runtime.policies.configMap -- Contains CWS policies that will be used
-        configMap:
-      syscallMonitor:
-        # datadog.securityAgent.runtime.syscallMonitor.enabled -- Set to true to enable the Syscall monitoring (recommended for troubleshooting only)
-        enabled: false
-      network:
-        # datadog.securityAgent.runtime.network.enabled -- Set to true to enable the collection of CWS network events
-        enabled: false
-
-      activityDump:
-        # datadog.securityAgent.runtime.activityDump.enabled -- Set to true to enable the collection of CWS activity dumps
-        enabled: false
-
-        # datadog.securityAgent.runtime.activityDump.tracedCgroupsCount -- Set to the number of containers that should be traced concurrently
-        tracedCgroupsCount: 3
-
-        # datadog.securityAgent.runtime.activityDump.cgroupDumpTimeout -- Set to the desired duration of a single container tracing (in minutes)
-        cgroupDumpTimeout: 20
-
-        # datadog.securityAgent.runtime.activityDump.cgroupWaitListSize -- Set to the size of the wait list for already traced containers
-        cgroupWaitListSize: 0
-
-        pathMerge:
-          # datadog.securityAgent.runtime.activityDump.pathMerge.enabled -- Set to true to enable the merging of similar paths
-          enabled: false
-
   ## Manage NetworkPolicy
   networkPolicy:
     # datadog.networkPolicy.create -- If true, create NetworkPolicy for all the components
@@ -529,7 +367,6 @@ datadog:
     # * kubernetes for networking.k8s.io/v1/NetworkPolicy
     # * cilium     for cilium.io/v2/CiliumNetworkPolicy
     flavor: kubernetes
-
     cilium:
       # datadog.networkPolicy.cilium.dnsSelector -- Cilium selector of the DNS server entity
       # @default -- kube-dns in namespace kube-system
@@ -673,7 +510,7 @@ clusterAgent:
     securityContextConstraints:
       # clusterAgent.podSecurity.securityContextConstraints.create -- If true, create a SCC resource for Cluster Agent pods
       create: false
-
+### Metrics provider
   # Enable the metricsProvider to be able to scale based on metrics in Datadog
   metricsProvider:
     # clusterAgent.metricsProvider.enabled -- Set this to true to enable Metrics Provider
